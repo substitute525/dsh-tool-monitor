@@ -1,0 +1,58 @@
+{
+  "name": "@substitute525/dsh-tool-monitor",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness plugin: background file/command monitors that wake the owning session on new output and show a live monitor list in the Web session header over a dedicated WebSocket. Host core + Web client half, no build step.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "monitor",
+    "background",
+    "websocket"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/substitute525/dsh-tool-monitor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/substitute525/dsh-tool-monitor/issues"
+  },
+  "homepage": "https://github.com/substitute525/dsh-tool-monitor#readme",
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ],
+      "external": [
+        "react",
+        "@deepseek-ai/cordis"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "dependencies": {
+    "ws": "*"
+  }
+}
