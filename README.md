@@ -23,18 +23,18 @@
 
 ## 安装
 
-把包安装进 dsh profile（pnpm workspace），注册一行即可。
+用 dsh 自己的插件命令把包装进目标 profile。
 
 ```bash
-# 1) 在 dsh profile 目录（如 profiles\web）执行，装进该 profile
-npm install @caizhiyuan/dsh-tool-monitor
+# 1) 安装到 web profile（等价于在该 profile 目录执行 pnpm add）
+dsh plugin --profile web add @caizhiyuan/dsh-tool-monitor
 
-# 2) 在 profiles\web\cordis.patch.yml 注册插件（含所需注入）：
+# 2) 若还未注册，在 profiles\web\cordis.patch.yml 添加插件行：
 #    - insert:
 #        - id: tool-monitor
 #          name: '@caizhiyuan/dsh-tool-monitor'
 
-# 3) 重启 dsh web 应用（宿主模块 + 新 client bundle 生效；client 部分刷新页面加载）
+# 3) 重启 dsh（宿主模块 + 新 client bundle 生效；client 部分刷新页面加载）
 ```
 
 > 前提：dsh profile 需已组合 `webServer`（Web 版默认有）；headless 无 `webServer` 时插件仍可用（模型工具正常），只是没有 WS 推送。
