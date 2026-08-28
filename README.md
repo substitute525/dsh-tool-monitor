@@ -23,8 +23,6 @@
 
 ## 安装
 
-## 安装
-
 把包安装进 dsh profile（pnpm workspace），注册一行即可。
 
 ```bash
