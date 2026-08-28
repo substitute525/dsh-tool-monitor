@@ -1,5 +1,5 @@
 {
-  "name": "@substitute525/dsh-tool-monitor",
+  "name": "@caizhiyuan/dsh-tool-monitor",
   "version": "0.1.0",
   "description": "DeepSeek Harness plugin: background file/command monitors that wake the owning session on new output and show a live monitor list in the Web session header over a dedicated WebSocket. Host core + Web client half, no build step.",
   "license": "MIT",
