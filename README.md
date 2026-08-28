@@ -23,23 +23,23 @@
 
 ## 安装
 
-### 从源码 / 发行包放入 dsh profile
+## 安装
 
-```powershell
-# 1) 把包放进 profile 的 node_modules（按你发布的 scope 目录命名）
-Copy-Item -Recurse -Force "<本包目录>" "C:\Users\HP\.dsh\profiles\web\node_modules\<你的 scope>\dsh-tool-monitor"
+把包安装进 dsh profile（pnpm workspace），注册一行即可。
 
-# 2) 在 profiles\web\cordis.patch.yml 注册：
-#    - insert: [{ id: tool-monitor, name: '<你的 scope>/dsh-tool-monitor' }]
+```bash
+# 1) 在 dsh profile 目录（如 profiles\web）执行，装进该 profile
+npm install @caizhiyuan/dsh-tool-monitor
 
-# 3) 重启 dsh web 应用，使宿主模块与新 client bundle 生效（刷新页面加载 client）
+# 2) 在 profiles\web\cordis.patch.yml 注册插件（含所需注入）：
+#    - insert:
+#        - id: tool-monitor
+#          name: '@caizhiyuan/dsh-tool-monitor'
+
+# 3) 重启 dsh web 应用（宿主模块 + 新 client bundle 生效；client 部分刷新页面加载）
 ```
 
 > 前提：dsh profile 需已组合 `webServer`（Web 版默认有）；headless 无 `webServer` 时插件仍可用（模型工具正常），只是没有 WS 推送。
-
-### 通过包管理器安装（发布后）
-
-按你发布到的 scope 安装，再按上面第 2、3 步注册并生效即可（包内 `dsh.client` 元数据会声明所需依赖）。
 
 ## 结构
 
