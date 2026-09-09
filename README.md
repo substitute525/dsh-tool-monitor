@@ -47,7 +47,7 @@ dsh plugin --profile web add @caizhiyuan/dsh-tool-monitor
 
 ## 结构
 
-- `lib/index.js` — Host 插件：`{name:'tool-monitor', inject:[...], Config(zod), apply}`；自注册表、每 tick 轮询（file/command）、出站 `ws` 客户端（source=ws）、唤醒预算、`agent/disposed` 清理、`/tool-monitor/ws` 端点、`/tool-monitor` RPC（read/stop）。
+- `lib/index.js` — Host 插件：`{name:'tool-monitor', inject:[...], Config(zod), apply}`；自注册表、每 tick 轮询（file/command）、出站 `ws` 客户端（source=ws）、唤醒预算、`agent/disposed` 清理、`/tool-monitor/ws` 端点、`/tool-monitor` RPC（read/stop，直接注册在 webServer 前缀路由上，绕开 `connection.rpc.handle` 在 cordis>=4 的 inject 限制）。
 - `lib/client.js` — Web 客户端半部（`window.__ModuleLoader__` 格式）：会话头部注册 `monitor-list`（order 30），连自有 WS 收 snapshot，点开查看/停止。
 - 无构建步骤（`"type":"module"`，纯 ESM / 模块加载器格式）。
 
