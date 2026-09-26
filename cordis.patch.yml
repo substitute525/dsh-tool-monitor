@@ -1,0 +1,8 @@
+# dsh bundle patch: inserts this plugin into a profile's layer stack.
+#
+# Declared through `dsh.bundle.patch` in package.json, so the profile launcher
+# applies this file whenever the package is listed in `dsh.profile.bundles`
+# (which `dsh plugin add` / the plugin manager does automatically).
+- insert:
+    - id: tool-monitor
+      name: '@caizhiyuan/dsh-tool-monitor'

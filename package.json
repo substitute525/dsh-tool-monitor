@@ -1,6 +1,6 @@
 {
   "name": "@caizhiyuan/dsh-tool-monitor",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "DeepSeek Harness plugin: background file/command/WebSocket monitors that wake the owning session on new output and show a live monitor list in the Web session header over a dedicated WebSocket. Host core + Web client half, no build step.",
   "license": "MIT",
   "type": "module",
@@ -8,10 +8,12 @@
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
+    "cordis.patch.yml",
     "LICENSE",
     "README.md"
   ],
@@ -32,6 +34,9 @@
   },
   "homepage": "https://github.com/substitute525/dsh-tool-monitor#readme",
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "inject": [

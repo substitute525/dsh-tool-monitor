@@ -23,32 +23,35 @@
 
 - **宿主自注册表**：monitor 存于插件自己的 `Map`（id 形如 `monitor-N`），状态词 `running / stopped / completed / failed`，**不写入 `ctx.jobs`**，因此不会出现在框架的「后台任务」列表里。file/command 走轮询 tick；`ws` 为事件驱动，连接一个出站 `WebSocket`（`ws` 包的客户端），text/binary/error/close 各自映射为通知与终态。
 - **自有 WebSocket 推送**：宿主用公开缝 `ctx.get('webServer').registerUpgrade({ path: '/tool-monitor/ws' })` 注册专属 WS 端点，再用 `ws` 包的 `WebSocketServer.handleUpgrade` 握手。每次注册表变化（启动 / 停止 / 结束 / 移除）就给该会话的连接推一份 `{ type:'snapshot', monitors:[...] }`；新连接建立先发一次 baseline；**loopback 校验**拒绝非本地来源；插件卸载时注销路由。
-- **客户端**：`new WebSocket(location.origin + '/tool-monitor/ws?sessionId=…')`，收到 snapshot 更新列表，掉线 1s 自动重连（重连后宿主补发 baseline）；**不轮询**、不依赖 `useSessions`。头部按钮复用了框架的 `StateDot` + `IconChevronDownOutline14`，与「后台任务」等控件视觉一致。
+- **客户端**：2s 轮询宿主 `/tool-monitor/list`（优先走 harness 的 `connection.rpc`，取不到该服务时回退为同源 `fetch` 打同一路由，认证随连接走）；**不用自有 WebSocket** —— 桌面版 UI 跑在 `dsh-app:` scheme 下，它不是 ws scheme（`new WebSocket("dsh-app://…")` 会抛错），而启动参数里的 `--fetch-schemes=dsh-app` 允许 fetch。头部按钮复用框架的 `StateDot` + `IconChevronDownOutlineRegular`，**图标按名字在运行时探测、取不到就跳过该图标**（曾因写了并不存在的 `IconChevronDownOutline14`，`React.createElement(undefined)` 在渲染期抛 "Element type is invalid"，导致整个 slot 条目被 `abdicate` —— 永久退出投影，控件再也不显示），与「后台任务」等控件视觉一致。
 - **输出按需读取**：模型端走 `monitor_read`（增量、消费游标）；Web 端点开行时经 `/tool-monitor` RPC `read`（保留窗口、非消费）。**输出不随推送下传**。
 - **唤醒（无次数上限）**：构造 `UserMessage`（source `{kind:'plugin:tool-monitor', form:'notice', summary}`）。owner **空闲** → 立即 `owner.followup(msg)` 唤醒；owner **忙** → 通知存入插件自有队列（`pending`，**不**进 agent inbox），待该 owner 转为 `idle`（监听 `agent/status`）时把队列**按 monitor 分组、合并成一条** `followup` 发出。因此忙时不会被反复打断，也不会因中断/取消丢消息；**没有唤醒预算**，不会出现"跑几次后不再唤醒"。`agent/disposed` 或插件卸载会停止其所有监听。
 
 ## 安装
 
-用 dsh 自己的插件命令把包装进目标 profile。
+本包声明了 `dsh.bundle.patch`（`./cordis.patch.yml`），因此它是**完整的组合包（bundle）**：装进 profile 后会自动成为一层 profile layer 并插入自己，不需要再手工改 profile 的 `cordis.patch.yml`。
 
 ```bash
-# 1) 安装到 web profile（等价于在该 profile 目录执行 pnpm add）
+# 1) 从 npm 安装
 dsh plugin --profile web add @caizhiyuan/dsh-tool-monitor
 
-# 2) 若还未注册，在 profiles\web\cordis.patch.yml 添加插件行：
-#    - insert:
-#        - id: tool-monitor
-#          name: '@caizhiyuan/dsh-tool-monitor'
+# 1b) 或从源码安装（开发用；link 后改源码即生效，宿主改动仍需重启）
+dsh plugin --profile web add link:W:/图南/dsh-tool-monitor
 
-# 3) 重启 dsh（宿主模块 + 新 client bundle 生效；client 部分刷新页面加载）
+# 2) 重启 dsh（宿主模块 + 新 client bundle 生效；client 部分刷新页面加载）
 ```
 
+`dsh plugin add` 会把包名追加进 `profiles\web\package.json` 的 `dsh.profile.bundles`，并校验 `dsh.bundle.patch` 指向的 patch 文件可解析；GUI 里的插件管理器走同一条路径（`installBundle`）。
+
+> 若包只声明 `dsh.client` 而没有 `dsh.bundle`，安装会被拒（`declares no dsh.bundle`），因为 profile 的 layer 栈只接受声明了 `dsh.bundle.patch` 的组合包。
+>
 > 前提：dsh profile 需已组合 `webServer`（Web 版默认有）；headless 无 `webServer` 时插件仍可用（模型工具正常），只是没有 WS 推送。
 
 ## 结构
 
 - `lib/index.js` — Host 插件：`{name:'tool-monitor', inject:[...], Config(zod), apply}`；自注册表、每 tick 轮询（file/command）、出站 `ws` 客户端（source=ws）、忙时排队 + 空闲合并投递、`agent/disposed` 清理、`/tool-monitor/ws` 端点、`/tool-monitor` RPC（read/stop，直接注册在 webServer 前缀路由上，绕开 `connection.rpc.handle` 在 cordis>=4 的 inject 限制）。
 - `lib/client.js` — Web 客户端半部（`window.__ModuleLoader__` 格式）：会话头部注册 `monitor-list`（order 30），连自有 WS 收 snapshot，点开查看/停止。
+- `cordis.patch.yml` — 组合包 patch：`dsh.bundle.patch` 指向它，内容为把本包 insert 进 profile layer 栈。
 - 无构建步骤（`"type":"module"`，纯 ESM / 模块加载器格式）。
 
 ## 开源协议
